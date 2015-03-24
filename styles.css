@@ -1,0 +1,44 @@
+span.plagiarismscore span.rank10,
+span.plagiarismscore span.rank9,
+span.plagiarismscore span.rank8,
+span.plagiarismscore span.rank7,
+span.plagiarismscore span.rank6,
+span.plagiarismscore span.rank5,
+span.plagiarismscore span.rank4,
+span.plagiarismscore span.rank3,
+span.plagiarismscore span.rank2,
+span.plagiarismscore span.rank1 {
+       color: #FFFFFF;
+       font-weight: bold;
+       padding: 2px;
+}
+span.plagiarismscore span.rank1 {
+       background: #CF0000;//darkred
+}
+span.plagiarismscore span.rank2 {
+       background: #F15A24;//red
+}
+span.plagiarismscore span.rank3 {
+       background: #00AEE3;//lightblue
+}
+span.plagiarismscore span.rank4 {
+       background: #196DD2;//blue
+}
+span.plagiarismscore span.rank5 {
+       background: #F7931E;//darkorange
+}
+span.plagiarismscore span.rank6 {
+       background: #FBB03B;//orange
+}
+span.plagiarismscore span.rank7 {
+       background: #FFE313;//lightorange
+}
+span.plagiarismscore span.rank8 {
+       background: #D9E021;//darkgreen
+}
+span.plagiarismscore span.rank9 {
+       background: #8CC63F;//lightgreen
+}
+span.plagiarismscore span.rank10 {
+       background: #22B573;//green
+}
