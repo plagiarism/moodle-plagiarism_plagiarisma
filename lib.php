@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * lib.php - Contains Plagiarism plugin specific functions called by Modules.
  *
@@ -38,8 +39,16 @@ define('PLAGIARISM_PLAGIARISMA_STATUS_READY', 4);
 define('PLAGIARISM_PLAGIARISMA_ATTEMPTS', 99);
 define('PLAGIARISM_PLAGIARISMA_URL', 'http://plagiarisma.net/api.php');
 
+/**
+ * plagiarism_plugin_plagiarisma - main class
+ * @copyright  2015 Plagiarisma.Net http://plagiarisma.net
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
-
+    /**
+     * get settings
+     * @return object
+     */
     public function get_settings() {
         static $plagiarismsettings;
 
@@ -81,8 +90,8 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
         }
     }
     /**
-     * hook to allow plagiarism specific information to be displayed beside a submission 
-     * @param array  $linkarraycontains all relevant information for the plugin to generate a link
+     * hook to allow plagiarism specific information to be displayed beside a submission.
+     * @param array $linkarray - contains all relevant information for the plugin to generate a link
      * @return string
      */
     public function get_links($linkarray) {
@@ -103,14 +112,9 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
         }
 
         $plagiarisma = array();
-        $plagiarisma['courseId'] = $COURSE->id;
-        $plagiarisma['courseTitle'] = $COURSE->fullname;
         $plagiarisma['cmid'] = $linkarray['cmid'];
         $plagiarisma['userid'] = $linkarray['userid'];
 
-        if (!empty($linkarray['assignment']) and !is_number($linkarray['assignment'])) {
-            $plagiarisma['assignmentTitle'] = $linkarray['assignment']->name;
-        }
         if (!$plagiarismsettings['plagiarisma_disable_dynamic_inline'] and
             !empty($linkarray['content']) and trim($linkarray['content']) != false) {
             $file = array();
@@ -166,7 +170,14 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
             return "<br/>$output<br/>";
         }
     }
-
+    /**
+     * get file results
+     * @param object $cmid
+     * @param object $userid
+     * @param array $file - file name, type, id, size, path
+     * @param array $plagiarisma
+     * @return array
+     */
     public function get_file_results($cmid, $userid, $file, $plagiarisma=null) {
         global $DB, $USER, $COURSE, $OUTPUT, $CFG;
 
@@ -235,7 +246,6 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
 
             $customdata = array(
                 'plagiarismsettings' => $plagiarismsettings,
-                'courseId' => $COURSE->id,
                 'cmid' => $cmid,
                 'user' => $user,
                 'modulecontext' => $modulecontext,
@@ -327,6 +337,7 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
      * hook to add plagiarism specific settings to a module settings page
      * @param object $mform  - Moodle form
      * @param object $context - current context
+     * @param object $modulename
      */
     public function get_form_elements_module($mform, $context, $modulename = '') {
         global $CFG, $DB;
@@ -373,7 +384,10 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
             $mform->setDefault('plagiarism_show_student_report', $plagiarismsettings['plagiarisma_student_report_default']);
         }
     }
-
+    /**
+     * return config options
+     * @return array
+     */
     public function config_options() {
         return array('use_plagiarisma', 'plagiarism_show_student_score', 'plagiarism_show_student_report');
     }
@@ -395,7 +409,6 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
     }
     /**
      * hook to allow status of submitted files to be updated - called on grading/report pages.
-     *
      * @param object $course - full Course object
      * @param object $cm - full cm object
      */
@@ -552,6 +565,9 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
     }
     /**
      * check if user valid and has paid subscription.
+     * @param string $userid - email of user
+     * @param string $secretkey - api key of user
+     * @return array
      */
     public function plagiarism_plagiarisma_authorize($userid, $secretkey) {
         $fields = array();
@@ -566,6 +582,8 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
     }
     /**
      * convert score numbers to css colors.
+     * @param int $score - score of submitted document
+     * @return string
      */
     public function plagiarism_plagiarisma_get_css_rank($score) {
         $rank = 'none';
@@ -596,6 +614,8 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
     }
     /**
      * it takes a path to a file and returns a string variable that contains plain text extracted from the file.
+     * @param string $path - local path of submitted document
+     * @return string
      */
     public function plagiarism_plagiarisma_tokenizer($path) {
         global $CFG;

@@ -13,4 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * access.php
+ *
+ * @since 2.0
+ * @package    plagiarism_plagiarisma
+ * @subpackage plagiarism
+ * @copyright  2010 Dan Marsden http://danmarsden.com
+ * @copyright  2015 Plagiarisma.Net http://plagiarisma.net
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 $capabilities = array();

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * plagiarism.php - allows the admin to configure plagiarism stuff
+ * settings.php - allows the admin to configure plagiarism stuff
  *
  * @package   plagiarism_plagiarisma
  * @author    Dan Marsden <dan@danmarsden.com>
@@ -83,6 +83,9 @@ $mform->display();
 echo $OUTPUT->box_end();
 echo $OUTPUT->footer();
 
+/**
+ * clean tables
+ */
 function clean_data() {
     global $DB;
 

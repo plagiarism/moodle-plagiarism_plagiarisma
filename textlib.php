@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * textlib.php - This library is to process external files of different types.
  *
@@ -23,10 +24,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// OMG!!! Adopting this file to pass Moodle Code-checker was a pain in da ass!
-// A lot of "Inline control structures are not allowed" errors and other crap...
-// Finally it works!
-
+/**
+ * convert zipped xml
+ * @param string $archivefile
+ * @param string $contentfile
+ */
 function plagiarisma_convert_zippedxml($archivefile, $contentfile) {
     $zip = new ZipArchive;
     if ($zip->open($archivefile)) {
@@ -44,7 +46,10 @@ function plagiarisma_convert_zippedxml($archivefile, $contentfile) {
     }
      return "ERROR in text Tokenization";
 }
-
+/**
+ * rtf_is_plaintext()
+ * @param array $s
+ */
 function rtf_is_plaintext($s) {
     $failat = array("*", "fonttbl", "colortbl", "datastore", "themedata");
     for ($i = 0; $i < count($failat); $i++) {
@@ -54,7 +59,10 @@ function rtf_is_plaintext($s) {
     }
     return true;
 }
-
+/**
+ * function to convert rtf to plain text
+ * @param string $filename
+ */
 function plagiarisma_rtf2txt($filename) {
     $text = file_get_contents($filename);
     if (!strlen($text)) {
@@ -234,7 +242,10 @@ function plagiarisma_rtf2txt($filename) {
     }
     return html_entity_decode($document);
 }
-
+/**
+ * decode_ascii_hex()
+ * @param string $input
+ */
 function decode_ascii_hex($input) {
     $output = "";
 
@@ -281,7 +292,10 @@ function decode_ascii_hex($input) {
     }
     return $output;
 }
-
+/**
+ * decode_ascii85()
+ * @param string $input
+ */
 function decode_ascii85($input) {
     $output = "";
 
@@ -338,14 +352,21 @@ function decode_ascii85($input) {
 
     return $output;
 }
+/**
+ * decode_flate()
+ * @param string $input
+ */
 function decode_flate($input) {
     // The most common compression method for data streams in PDF.
     // Very easy to deal with using libraries.
     return @gzuncompress($input);
 }
-
+/**
+ * get_object_options()
+ * @param object $object
+ */
 function get_object_options($object) {
-    // We need to get current object attrbutes. These attributes are
+    // We need to get current object attributes. These attributes are
     // located between << and >>. Each option starts with /.
     $options = array();
     if (preg_match("#<<(.*)>>#ismU", $object, $options)) {
@@ -374,6 +395,11 @@ function get_object_options($object) {
     // Return an array of parameters we found.
     return $options;
 }
+/**
+ * get_decoded_stream()
+ * @param string $encodedstream
+ * @param array $options
+ */
 function get_decoded_stream($encodedstream, $options) {
     // Now we have a stream that is possibly coded with some compression method(s)
     // Lets try to decode it.
@@ -407,6 +433,11 @@ function get_decoded_stream($encodedstream, $options) {
     }
     return $data;
 }
+/**
+ * get_dirty_texts()
+ * @param array $texts
+ * @param array $textcontainers
+ */
 function get_dirty_texts(&$texts, $textcontainers) {
     // So we have an array of text contatiners that were taken from both  BT and ET.
     // Our new task is to find a text in them that would be displayed by viewers
@@ -420,7 +451,11 @@ function get_dirty_texts(&$texts, $textcontainers) {
         }
     }
 }
-
+/**
+ * get_char_transformations()
+ * @param array $transformations
+ * @param string $stream
+ */
 function get_char_transformations(&$transformations, $stream) {
     // Oh Mama Mia! As far as I know nobody did it before. At least not in the open source.
     // We are going to have some fun now - search in symbol transformation streams.
@@ -487,7 +522,11 @@ function get_char_transformations(&$transformations, $stream) {
         }
     }
 }
-
+/**
+ * get_text_using_transformations()
+ * @param array $texts
+ * @param array $transformations
+ */
 function get_text_using_transformations($texts, $transformations) {
     // Second phase - getting text out of raw data.
     // In PDF "dirty" text strings may look as follows:
@@ -596,7 +635,10 @@ function get_text_using_transformations($texts, $transformations) {
     // Return text.
     return $document;
 }
-
+/**
+ * function to convert pdf to plain text
+ * @param string $filename
+ */
 function plagiarisma_pdf2txt($filename) {
     // Read from the pdf file into string keeping in mind that file may contain binary streams.
     $infile = @file_get_contents($filename, FILE_BINARY);
@@ -647,57 +689,85 @@ function plagiarisma_pdf2txt($filename) {
     // the text blocks we got in the context of simbolic transformations. Return the result after we done.
     return get_text_using_transformations($texts, $transformations);
 }
-
-// So my little firends, below you can see class that works with WCBFF (Windows Compound Binary File Format).
-// Why do we need it? This format serves as a basement for such "delicious" formats as .doc, .xls и .ppt.
-// Lets see how it looks like.
+/**
+ * class to convert .doc, .xls, .ppt to plain text
+ *
+ * @copyright  2009 Alex Rembish https://github.com/rembish/TextAtAnyCost
+ * @copyright  2015 Plagiarisma.Net http://plagiarisma.net
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class wcbff {
-    // We gonna read the content of the file we need to decode into this variable.
+    // So my little firends, below you can see class that works with WCBFF (Windows Compound Binary File Format).
+    // Why do we need it? This format serves as a basement for such "delicious" formats as .doc, .xls, .ppt.
+    // Lets see how it looks like.
+
+    /** @var string We gonna read the content of the file we need to decode into this variable. */
     protected $data = "";
 
-    // Sizes of FAT sector (1 << 9 = 512), Mini FAT sector (1 << 6 = 64) and maximum size
-    // of the stream that could be written into a miniFAT.
+    /**
+     * Sizes of FAT sector (1 << 9 = 512), Mini FAT sector (1 << 6 = 64) and maximum size
+     * of the stream that could be written into a miniFAT.
+     * @var int
+     */
     protected $sectorshift = 9;
+    /** @var int */
     protected $minisectorshift = 6;
+    /** @var int */
     protected $minisectorcutoff = 4096;
 
-    // FAT-sector sequence array and Array of "files" belonging to this file structure.
+    /** @var array FAT-sector sequence array and Array of "files" belonging to this file structure. */
     protected $fatchains = array();
+    /** @var array */
     protected $fatentries = array();
 
-    // Array of sequences of  Mini FAT-sectors and the whole Mini FAT of our file.
+    /** @var array Array of sequences of  Mini FAT-sectors and the whole Mini FAT of our file. */
     protected $minifatchains = array();
+    /** @var string */
     protected $minifat = "";
 
-    // Version (3 or 4), and way to write numbers (little-endian).
+    /** @var int Version (3 or 4), and way to write numbers (little-endian). */
     private $version = 3;
+    /** @var bool */
     private $islittleendian = true;
 
-    // The number of "files" and the position fo the first "file" in FAT.
+    /** @var int The number of "files" and the position fo the first "file" in FAT. */
     private $cdir = 0;
+    /** @var int */
     private $fdir = 0;
 
-    // The number of FAT sectors in the file.
+    /** @var int The number of FAT sectors in the file. */
     private $cfat = 0;
 
-    // The number of miniFAT-sectors and position of sequences of miniFAT-сsectors in the file.
+    /** @var int The number of miniFAT-sectors and position of sequences of miniFAT-сsectors in the file. */
     private $cminifat = 0;
+    /** @var int */
     private $fminifat = 0;
 
-    // DIFAT: number of such sectors and offset to sector 110 (first 109 sectors are located in the header).
+    /** @var array DIFAT: number of such sectors and offset to sector 110 (first 109 sectors are located in the header). */
     private $difat = array();
+    /** @var int */
     private $cdifat = 0;
+    /** @var int */
     private $fdifat = 0;
 
-    // Constants: end of sequence and empty sector (4 bytes each).
+    /**
+     * Constants: end of sequence (4 bytes).
+     */
     const ENDOFCHAIN = 0xFFFFFFFE;
+    /**
+     * Constants: empty sector (4 bytes).
+     */
     const FREESECT   = 0xFFFFFFFF;
-
-    // Read the file into internal variable.
+    /**
+     * read the file into internal variable.
+     * @param string $filename
+     */
     public function read($filename) {
         $this->data = file_get_contents($filename);
     }
-
+    /**
+     * parse()
+     */
     public function parse() {
         // First of all we need to check weither we really have CFB in front of us.?
         // To do it we read the first 8 bytes and compare them with 2 patterns: common and the old one.
@@ -725,9 +795,11 @@ class wcbff {
 
         // After all this we should be able to work with any of the "upper" formats from Microsoft such as doc, xls, ppt.
     }
-
-    // Function that looks for stream number in the directory structure by its name.
-    // It returns false if nothing was found.
+    /**
+     * function that looks for stream number in the directory structure by its name.
+     * it returns false if nothing was found.
+     * @param string $name
+     */
     public function get_stream_id_by_name($name) {
         for ($i = 0; $i < count($this->fatentries); $i++) {
             if ($this->fatentries[$i]["name"] == $name) {
@@ -736,8 +808,12 @@ class wcbff {
         }
         return false;
     }
-    // Function gets the stream number ($id) and a second parameter (second perameter is required for the root entry only).
-    // It returns the binary content fo this stream.
+    /**
+     * function gets the stream number ($id) and a second parameter (second perameter is required for the root entry only).
+     * it returns the binary content fo this stream.
+     * @param integer $id
+     * @param boolean $isroot
+     */
     public function get_stream_by_id($id, $isroot = false) {
         $entry = $this->fatentries[$id];
         // Get the size and offset position to the content of "current" file.
@@ -781,8 +857,9 @@ class wcbff {
         // Return the stream content according to its size.
         return substr($stream, 0, $size);
     }
-
-    // This function reads data from file header.
+    /**
+     * this function reads data from file header.
+     */
     private function read_header() {
         // We need to get the information about the data format in the file.
         $ubyteorder = strtoupper(bin2hex(substr($this->data, 0x1C, 2)));
@@ -814,9 +891,10 @@ class wcbff {
         $this->cdifat = $this->get_long(0x48);
         $this->fdifat = $this->get_long(0x44);
     }
-
-    // So.... DIFAT. DIFAT shows in which sectors we can find descriptions of FAT sector chains.
-    // Without these chains we won't be able to get stream contents in fragmented files.
+    /**
+     * so.... DIFAT. DIFAT shows in which sectors we can find descriptions of FAT sector chains.
+     * without these chains we won't be able to get stream contents in fragmented files.
+     */
     private function read_difat() {
         $this->difat = array();
         // First 109 links to sequences are being stored in the header of our file.
@@ -850,8 +928,10 @@ class wcbff {
             array_pop($this->difat);
         }
     }
-    // So, we done with reading DIFAT. Now chains of FAT sectors should be converted .
-    // Lets go further.
+    /**
+     * so, we done with reading DIFAT. Now chains of FAT sectors should be converted .
+     * lets go further.
+     */
     private function read_fat_chains() {
         // Sector size.
         $size = 1 << $this->sectorshift;
@@ -869,7 +949,9 @@ class wcbff {
             }
         }
     }
-    // We done with reading of FAT sequences. Now heed to read MiniFAT-sequences exaactly the same way.
+    /**
+     * we done with reading of FAT sequences. Now heed to read MiniFAT-sequences exaactly the same way.
+     */
     private function read_mini_fat_chains() {
         // Sector size.
         $size = 1 << $this->sectorshift;
@@ -889,9 +971,10 @@ class wcbff {
             $from = $this->fatchains[$from];
         }
     }
-
-    // The most important functions that reads structure of "files" of such a type
-    // All the FS objects are written into this structure.
+    /**
+     * the most important functions that reads structure of "files" of such a type
+     * all the FS objects are written into this structure.
+     */
     private function read_directory_structure() {
         // Get the 1st sector with "files" in file system.
         $from = $this->fdir;
@@ -927,9 +1010,11 @@ class wcbff {
             array_pop($this->fatentries);
         }
     }
-
-    // Support function to get the adequate name of the current entrie in FS.
-    // Note: names are written in the Unicode.
+    /**
+     * support function to get the adequate name of the current entrie in FS.
+     * note: names are written in the Unicode.
+     * @param string $in
+     */
     private function utf16_to_ansi($in) {
         $out = "";
         for ($i = 0; $i < strlen($in); $i += 2) {
@@ -937,7 +1022,11 @@ class wcbff {
         }
         return trim($out);
     }
-
+    /**
+     * function to convert from Unicode to UTF8.
+     * @param string $in
+     * @param boolean $check
+     */
     protected function unicode_to_utf8($in, $check = false) {
         $out = "";
         if ($check && strpos($in, chr(0)) !== 1) {
@@ -1026,9 +1115,13 @@ class wcbff {
         }
         return $out;
     }
-
-    // Support function to geto some bytes from the string
-    // taking into account order of bytes and converting values into a number.
+    /**
+     * support function to geto some bytes from the string
+     * taking into account order of bytes and converting values into a number.
+     * @param string $data
+     * @param string $from
+     * @param integer $count
+     */
     protected function get_some_bytes($data, $from, $count) {
         // Read data from  $data by default.
         if ($data === null) {
@@ -1042,22 +1135,35 @@ class wcbff {
         // Encode from binary to hex and to a number.
         return hexdec(bin2hex($string));
     }
-    // Read a word from the variable (by default from this->data).
+    /**
+     * read a word from the variable (by default from this->data).
+     * @param string $from
+     * @param string $data
+     */
     protected function get_short($from, $data = null) {
         return $this->get_some_bytes($data, $from, 2);
     }
-    // Read a double word from the variable (by default from this->data).
+    /**
+     * read a double word from the variable (by default from this->data).
+     * @param string $from
+     * @param string $data
+     */
     protected function get_long($from, $data = null) {
         return $this->get_some_bytes($data, $from, 4);
     }
 }
-
-// Class to work with Microsoft Word Document (or just doc). It extends
-// Windows Compound Binary File Format. Lets try to find text here.
-
+/**
+ * class to work with Microsoft Word Document (or just doc).
+ *
+ * @copyright  2009 Alex Rembish https://github.com/rembish/TextAtAnyCost
+ * @copyright  2015 Plagiarisma.Net http://plagiarisma.net
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class justdoc extends wcbff {
-    // This function extends parse funciton and returns text from the file.
-    // If returns flase if something went wrong.
+    /**
+     * this function extends parse function and returns text from the file.
+     * if returns false if something went wrong.
+     */
     public function parse() {
         parent::parse();
 
@@ -1178,7 +1284,11 @@ class justdoc extends wcbff {
         // Return the results.
         return $text;
     }
-    // Function to convert from Unicode to UTF8.
+    /**
+     * function to convert from Unicode to UTF8.
+     * @param string $in
+     * @param boolean $check
+     */
     protected function unicode_to_utf8($in, $check=false) {
         $out = "";
         // Loop through 2-byte sequences.
@@ -1218,8 +1328,10 @@ class justdoc extends wcbff {
         return $out;
     }
 }
-
-// Function to convert doc to plain-text. For those who "don't need classes".
+/**
+ * function to convert doc to plain text. For those who "don't need classes".
+ * @param string $filename
+ */
 function plagiarisma_doc2txt($filename) {
     $doc = new justdoc;
     $doc->read($filename);

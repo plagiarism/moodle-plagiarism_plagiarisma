@@ -13,12 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 /**
+ * plagiarism_plagiarisma.php
  *
- * @package   plagiarism_plagiarisma
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @since 2.0
+ * @package    plagiarism_plagiarisma
+ * @subpackage plagiarism
+ * @copyright  1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @copyright  2015 Plagiarisma.Net http://plagiarisma.net
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 $string['pluginname'] = 'PLAGIARISMA';
 $string['studentdisclosuredefault'] = 'All files uploaded will be submitted to Plagiarisma.Net';

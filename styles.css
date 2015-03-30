@@ -13,32 +13,32 @@ span.plagiarismscore span.rank1 {
        padding: 2px;
 }
 span.plagiarismscore span.rank1 {
-       background: #CF0000;//darkred
+       background: #CF0000; /* dark-red */
 }
 span.plagiarismscore span.rank2 {
-       background: #F15A24;//red
+       background: #F15A24; /* red */
 }
 span.plagiarismscore span.rank3 {
-       background: #00AEE3;//lightblue
+       background: #00AEE3; /* light-blue */
 }
 span.plagiarismscore span.rank4 {
-       background: #196DD2;//blue
+       background: #196DD2; /* blue */
 }
 span.plagiarismscore span.rank5 {
-       background: #F7931E;//darkorange
+       background: #F7931E; /* dark-orange */
 }
 span.plagiarismscore span.rank6 {
-       background: #FBB03B;//orange
+       background: #FBB03B; /* orange */
 }
 span.plagiarismscore span.rank7 {
-       background: #FFE313;//lightorange
+       background: #FFE313; /* light-orange */
 }
 span.plagiarismscore span.rank8 {
-       background: #D9E021;//darkgreen
+       background: #D9E021; /* dark-green */
 }
 span.plagiarismscore span.rank9 {
-       background: #8CC63F;//lightgreen
+       background: #8CC63F; /* light-green */
 }
 span.plagiarismscore span.rank10 {
-       background: #22B573;//green
+       background: #22B573; /* green */
 }
