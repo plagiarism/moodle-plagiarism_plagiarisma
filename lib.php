@@ -115,60 +115,63 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
         $plagiarisma['cmid'] = $linkarray['cmid'];
         $plagiarisma['userid'] = $linkarray['userid'];
 
-        if (!$plagiarismsettings['plagiarisma_disable_dynamic_inline'] and
-            !empty($linkarray['content']) and trim($linkarray['content']) != false) {
-            $file = array();
-            $linkarray['content'] = '<html>'.$linkarray['content'].'</html>';
-            $file['filename'] = '.txt';
-            $file['type'] = 'inline';
-            $file['identifier'] = $plagiarismsettings['plagiarisma_accountid'].'_'.sha1($linkarray['content']);
-            $file['filepath'] = '';
-            $file['userid'] = $linkarray['userid'];
-            $file['size'] = 100;
-            $file['content'] = $linkarray['content'];
-            $plagiarisma['file'] = $file;
-        } else if (!empty($linkarray['file'])) {
-            $file = array();
-            $file['filename'] = (!empty($linkarray['file']->filename)) ?
-                                        $linkarray['file']->filename :
-                                        $linkarray['file']->get_filename();
-            $file['type'] = 'file';
-            $file['identifier'] = $plagiarismsettings['plagiarisma_accountid'].'_'.$linkarray['file']->get_pathnamehash();
-            $file['filepath'] = (!empty($linkarray['file']->filepath)) ?
-                                        $linkarray['file']->filepath :
-                                        $linkarray['file']->get_filepath();
-            $file['userid'] = $linkarray['file']->get_userid();
-            $file['size'] = $linkarray['file']->get_filesize();
-            $plagiarisma['file'] = $file;
+        if (isset($linkarray['assignment']) || isset($linkarray['file'])) {
+            if (!$plagiarismsettings['plagiarisma_disable_dynamic_inline'] and
+                !empty($linkarray['content']) and trim($linkarray['content']) != false) {
+                $file = array();
+                $linkarray['content'] = '<html>'.$linkarray['content'].'</html>';
+                $file['filename'] = '.txt';
+                $file['type'] = 'inline';
+                $file['identifier'] = $plagiarismsettings['plagiarisma_accountid'].'_'.sha1($linkarray['content']);
+                $file['filepath'] = '';
+                $file['userid'] = $linkarray['userid'];
+                $file['size'] = 100;
+                $file['content'] = $linkarray['content'];
+                $plagiarisma['file'] = $file;
+            } else if (!empty($linkarray['file'])) {
+                $file = array();
+                $file['filename'] = (!empty($linkarray['file']->filename)) ?
+                                            $linkarray['file']->filename :
+                                            $linkarray['file']->get_filename();
+                $file['type'] = 'file';
+                $file['identifier'] = $plagiarismsettings['plagiarisma_accountid'].'_'.$linkarray['file']->get_pathnamehash();
+                $file['filepath'] = (!empty($linkarray['file']->filepath)) ?
+                                            $linkarray['file']->filepath :
+                                            $linkarray['file']->get_filepath();
+                $file['userid'] = $linkarray['file']->get_userid();
+                $file['size'] = $linkarray['file']->get_filesize();
+                $plagiarisma['file'] = $file;
+            }
+            if (!isset($file) or $file['userid'] !== $plagiarisma['userid'] or $file['size'] > 52428800) {
+                return "";
+            }
+
+            $results = $this->get_file_results($plagiarisma['cmid'],
+                                               $plagiarisma['userid'],
+                                               !empty($linkarray['file']) ? $linkarray['file'] : null, $plagiarisma);
+
+            if ((empty($results) and isset($_SESSION['plagiarisma_use'])) or is_numeric($results['score']) === false) {
+                return '<br/><b>Pending!</b><br/>';
+            }
+            $rank = $this->plagiarism_plagiarisma_get_css_rank($results['score']);
+
+            $similaritystring = '&nbsp;<span class="' . $rank . '">' . $results['score'] . '%</span>';
+
+            if (!empty($results['reporturl']) and intval($results['score']) >= 0) {
+                // User gets to see link to similarity report & similarity score.
+                $output = '<span class="plagiarismscore"><a href="' . $results['reporturl'] . '" target="_blank">';
+                $output .= get_string('similarity', 'plagiarism_plagiarisma') . ':</a>' . $similaritystring . '</span>';
+
+                return "<br/>$output<br/>";
+            } else if (empty($results['reporturl']) and intval($results['score']) >= 0) {
+                $output = '<span class="plagiarismscore">'.
+                           get_string('similarity', 'plagiarism_plagiarisma').':'.$similaritystring.
+                          '</span>';
+
+                return "<br/>$output<br/>";
+            }
         }
-        if (!isset($file) or $file['userid'] !== $plagiarisma['userid'] or $file['size'] > 52428800) {
-            return "";
-        }
-
-        $results = $this->get_file_results($plagiarisma['cmid'],
-                                           $plagiarisma['userid'],
-                                           !empty($linkarray['file']) ? $linkarray['file'] : null, $plagiarisma);
-
-        if ((empty($results) and isset($_SESSION['plagiarisma_use'])) or is_numeric($results['score']) === false) {
-            return '<br/><b>Pending!</b><br/>';
-        }
-        $rank = $this->plagiarism_plagiarisma_get_css_rank($results['score']);
-
-        $similaritystring = '&nbsp;<span class="' . $rank . '">' . $results['score'] . '%</span>';
-
-        if (!empty($results['reporturl']) and intval($results['score']) >= 0) {
-            // User gets to see link to similarity report & similarity score.
-            $output = '<span class="plagiarismscore"><a href="' . $results['reporturl'] . '" target="_blank">';
-            $output .= get_string('similarity', 'plagiarism_plagiarisma') . ':</a>' . $similaritystring . '</span>';
-
-            return "<br/>$output<br/>";
-        } else if (empty($results['reporturl']) and intval($results['score']) >= 0) {
-            $output = '<span class="plagiarismscore">'.
-                       get_string('similarity', 'plagiarism_plagiarisma').':'.$similaritystring.
-                      '</span>';
-
-            return "<br/>$output<br/>";
-        }
+        return "";
     }
     /**
      * get file results
@@ -345,6 +348,10 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
         $plagiarismsettings = $this->get_settings();
 
         if (!$plagiarismsettings) {
+            return;
+        }
+        // Only with the assign module.
+        if ($modulename != 'mod_assign') {
             return;
         }
         $cmid = optional_param('update', 0, PARAM_INT);
