@@ -97,6 +97,13 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
     public function get_links($linkarray) {
         global $COURSE;
 
+        $modinfo = get_fast_modinfo($linkarray['course']);
+        $cminfo = $modinfo->get_cm($linkarray['cmid']);
+
+        // Only with the assign module.
+        if ($cminfo->modname != 'assign' and $cminfo->modname != 'assignment') {
+                return;
+        }
         if (!empty($linkarray['file'])) {
             $file = $linkarray['file'];
             $filearea = $file->get_filearea();
