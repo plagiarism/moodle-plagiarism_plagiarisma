@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2015032400;
 $plugin->requires = 2013051406;
-$plugin->cron      = 60;
+$plugin->cron      = 60; // 1 min.
 $plugin->component = 'plagiarism_plagiarisma';
 $plugin->maturity = MATURITY_STABLE;
 $plugin->release = "1.0";
