@@ -5,9 +5,13 @@ PLAGIARISMA is a commercial product owned by Plagiarisma.Net - you must have a p
 QUICK INSTALL
 =============
 1) Place these files in a new folder in your Moodle install under /plagiarism/plagiarisma
+
 2) Visit the Notifications page in Moodle to trigger the upgrade scripts
+
 3) Enable the Plagiarism API under admin > Advanced Features
+
 4) Configure the plugin under admin > plugins > Plagiarism > PLAGIARISMA
+
 5) IMPORTANT: You need to setup CRON running on your server.
 
 NOTE
