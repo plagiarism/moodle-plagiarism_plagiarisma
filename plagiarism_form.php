@@ -61,19 +61,6 @@ class plagiarism_setup_form extends moodleform {
                            get_string('disable_dynamic_inline', 'plagiarism_plagiarisma'));
         $mform->addHelpButton('plagiarisma_disable_dynamic_inline', 'disable_dynamic_inline', 'plagiarism_plagiarisma');
 
-        $mform->addElement('html', get_string('plagiarismadefaultsettings', 'plagiarism_plagiarisma') . "<br/>");
-
-        $mform->addElement('checkbox', 'plagiarisma_use_default', get_string('useplagiarisma', 'plagiarism_plagiarisma'));
-        $mform->addHelpButton('plagiarisma_use_default', 'useplagiarisma', 'plagiarism_plagiarisma');
-
-        $mform->addElement('checkbox', 'plagiarisma_student_score_default',
-                           get_string('studentscoreplagiarisma', 'plagiarism_plagiarisma'));
-        $mform->addHelpButton('plagiarisma_student_score_default', 'studentscoreplagiarisma', 'plagiarism_plagiarisma');
-
-        $mform->addElement('checkbox', 'plagiarisma_student_report_default',
-                           get_string('studentreportplagiarisma', 'plagiarism_plagiarisma'));
-        $mform->addHelpButton('plagiarisma_student_report_default', 'studentreportplagiarisma', 'plagiarism_plagiarisma');
-
         $mform->addElement('html', get_string('tools', 'plagiarism_plagiarisma'));
         $mform->addElement('checkbox', 'delall', get_string('clean_tables', 'plagiarism_plagiarisma'));
         $mform->addHelpButton('delall', 'cleantables', 'plagiarism_plagiarisma');
