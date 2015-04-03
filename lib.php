@@ -46,24 +46,20 @@ define('PLAGIARISM_PLAGIARISMA_URL', 'http://plagiarisma.net/api.php');
  */
 class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
     /**
-     * get settings
+     * this function returns "false" if plugin disabled or if something wrong with the subscription.
      * @return object
      */
     public function get_settings() {
-        static $plagiarismsettings;
 
-        if (!empty($plagiarismsettings) or $plagiarismsettings === false) {
-            return $plagiarismsettings;
-        }
-        $plagiarismsettings = (array)get_config('plagiarism');
+        $plagiarismsettings = get_config('plagiarism_plagiarisma');
         // Check if enabled.
-        if (isset($plagiarismsettings['plagiarisma_use']) and $plagiarismsettings['plagiarisma_use']) {
+        if (isset($plagiarismsettings->plagiarisma_use) and $plagiarismsettings->plagiarisma_use) {
             // Now check to make sure required settings are set!
-            if (empty($plagiarismsettings['plagiarisma_accountid'])) {
+            if (empty($plagiarismsettings->plagiarisma_accountid)) {
                 notify(get_string('id_notset', 'plagiarism_plagiarisma'), 'notifyproblem');
                 return false;
             }
-            if (empty($plagiarismsettings['plagiarisma_secretkey'])) {
+            if (empty($plagiarismsettings->plagiarisma_secretkey)) {
                 notify(get_string('key_notset', 'plagiarism_plagiarisma'), 'notifyproblem');
                 return false;
             }
@@ -71,8 +67,8 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
                 return $plagiarismsettings;
             }
             // Validate email, apikey and subscription.
-            $status = $this->plagiarism_plagiarisma_authorize($plagiarismsettings['plagiarisma_accountid'],
-                                                              $plagiarismsettings['plagiarisma_secretkey']);
+            $status = $this->plagiarism_plagiarisma_authorize($plagiarismsettings->plagiarisma_accountid,
+                                                              $plagiarismsettings->plagiarisma_secretkey);
 
             if (isset($status['error'])) {
                 // Validation failed.
@@ -121,13 +117,13 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
         $plagiarisma['userid'] = $linkarray['userid'];
 
         if (isset($linkarray['assignment']) || isset($linkarray['file'])) {
-            if (!$plagiarismsettings['plagiarisma_disable_dynamic_inline'] and
+            if (!$plagiarismsettings->plagiarisma_disable_dynamic_inline and
                 !empty($linkarray['content']) and trim($linkarray['content']) != false) {
                 $file = array();
                 $linkarray['content'] = '<html>'.$linkarray['content'].'</html>';
                 $file['filename'] = '.txt';
                 $file['type'] = 'inline';
-                $file['identifier'] = $plagiarismsettings['plagiarisma_accountid'].'_'.sha1($linkarray['content']);
+                $file['identifier'] = $plagiarismsettings->plagiarisma_accountid.'_'.sha1($linkarray['content']);
                 $file['filepath'] = '';
                 $file['userid'] = $linkarray['userid'];
                 $file['size'] = 100;
@@ -139,7 +135,7 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
                                             $linkarray['file']->filename :
                                             $linkarray['file']->get_filename();
                 $file['type'] = 'file';
-                $file['identifier'] = $plagiarismsettings['plagiarisma_accountid'].'_'.$linkarray['file']->get_pathnamehash();
+                $file['identifier'] = $plagiarismsettings->plagiarisma_accountid.'_'.$linkarray['file']->get_pathnamehash();
                 $file['filepath'] = (!empty($linkarray['file']->filepath)) ?
                                             $linkarray['file']->filepath :
                                             $linkarray['file']->get_filepath();
@@ -154,31 +150,33 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
             $results = $this->get_file_results($plagiarisma['cmid'],
                                                $plagiarisma['userid'],
                                                !empty($linkarray['file']) ? $linkarray['file'] : null, $plagiarisma);
-
             if ($results === false) {
                 return '';
-            } else if (is_numeric($results['score']) === false) {
-                return '<br/><b>Pending!</b><br/>';
-            }
-            $rank = $this->plagiarism_plagiarisma_get_css_rank($results['score']);
+            } else {
+                if (intval($results['analyzed']) == 0) {
+                    return '<br/><b>Pending!</b><br/>';
+                } else {
+                    $rank = $this->plagiarism_plagiarisma_get_css_rank($results['score']);
 
-            $similaritystring = '&nbsp;<span class="' . $rank . '">' . $results['score'] . '%</span>';
+                    $similaritystring = '&nbsp;<span class="' . $rank . '">' . $results['score'] . '%</span>';
 
-            if (!empty($results['reporturl']) and intval($results['score']) >= 0) {
-                // User gets to see link to similarity report & similarity score.
-                $output = '<span class="plagiarismscore"><a href="' . $results['reporturl'] . '" target="_blank">';
-                $output .= get_string('similarity', 'plagiarism_plagiarisma') . ':</a>' . $similaritystring . '</span>';
+                    if (!empty($results['reporturl']) and intval($results['score']) >= 0) {
+                        // User gets to see link to similarity report & similarity score.
+                        $output = '<span class="plagiarismscore"><a href="' . $results['reporturl'] . '" target="_blank">';
+                        $output .= get_string('similarity', 'plagiarism_plagiarisma') . ':</a>' . $similaritystring . '</span>';
 
-                return "<br/>$output<br/>";
-            } else if (empty($results['reporturl']) and intval($results['score']) >= 0) {
-                $output = '<span class="plagiarismscore">'.
-                           get_string('similarity', 'plagiarism_plagiarisma').':'.$similaritystring.
-                          '</span>';
+                        return "<br/>$output<br/>";
+                    } else if (empty($results['reporturl']) and intval($results['score']) >= 0) {
+                        $output = '<span class="plagiarismscore">'.
+                                   get_string('similarity', 'plagiarism_plagiarisma').':'.$similaritystring.
+                                  '</span>';
 
-                return "<br/>$output<br/>";
+                        return "<br/>$output<br/>";
+                    }
+                }
             }
         }
-        return "";
+        return '';
     }
     /**
      * get file results
@@ -193,20 +191,20 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
 
         $cm = get_coursemodule_from_id('', $cmid);
         if ($cm->modname != 'assign') {
-            return '';
+            return false;
         }
 
         $plagiarismsettings = $this->get_settings();
         if ($plagiarismsettings === false) {
             // Plugin is not enabled.
-            return '';
+            return false;
         }
         $plagiarismvalues = $DB->get_records_menu('plagiarism_plagiarisma_cfg',
                                                    array('cm' => $plagiarisma['cmid']), '', 'name,value');
 
-        if (empty($plagiarismvalues['use_plagiarisma'])) {
+        if (empty($plagiarismvalues['plagiarisma_use']) or $plagiarismvalues['plagiarisma_use'] == 0) {
             // Plugin is not in use for this cm.
-            return '';
+            return false;
         }
 
         $modulecontext = context_module::instance($plagiarisma['cmid']);
@@ -215,10 +213,10 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
 
         if ($USER->id == $plagiarisma['userid']) {
             // The user wants to see details on their own report.
-            if ($plagiarismvalues['plagiarism_show_student_score'] == 1) {
+            if ($plagiarismvalues['plagiarism_show_student_score']) {
                 $viewsimilarityscore = true;
             }
-            if ($plagiarismvalues['plagiarism_show_student_report'] == 1) {
+            if ($plagiarismvalues['plagiarism_show_student_report']) {
                 $viewfullreport = true;
             }
         }
@@ -308,13 +306,13 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
                 $token = $dbtoken->token;
 
                 if ($viewfullreport) {
-                    $uid = str_rot13(base64_encode($plagiarismsettings['plagiarisma_accountid']));
+                    $uid = str_rot13(base64_encode($plagiarismsettings->plagiarisma_accountid));
                     $results['reporturl'] = 'http://plagiarisma.net/users/'.$uid.'/'.$token.'.html';
                 }
                 break;
             }
         } else {
-                return false;
+                return $results;
         }
         return $results;
     }
@@ -325,10 +323,9 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
     public function save_form_elements($data) {
         global $DB;
 
-        if ($this->get_settings() === false) {
-            return '';
-        }
-        if (isset($data->plagiarisma_use)) {
+        $plagiarismsettings = get_config('plagiarism_plagiarisma');
+
+        if ($plagiarismsettings->plagiarisma_use) {
             $plagiarismelements = $this->config_options();
             // First get existing values.
             $existingelements = $DB->get_records_menu('plagiarism_plagiarisma_cfg',
@@ -362,46 +359,40 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
         if ($modulename != 'mod_assign') {
             return '';
         }
-        $plagiarismsettings = $this->get_settings();
-
-        if ($plagiarismsettings === false) {
+        $plagiarismsettings = get_config('plagiarism_plagiarisma');
+        // Check Plagiarisma is enabled for this current module.
+        if (!isset($plagiarismsettings->plagiarisma_use) or !$plagiarismsettings->plagiarisma_use) {
             return '';
         }
-        $cmid = optional_param('update', 0, PARAM_INT);
 
+        $cmid = optional_param('update', 0, PARAM_INT);
         if (!empty($cmid)) {
             $plagiarismvalues = $DB->get_records_menu('plagiarism_plagiarisma_cfg', array('cm' => $cmid), '', 'name,value');
         }
-        $plagiarismelements = $this->config_options();
 
+        $plagiarismelements = $this->config_options();
         $mform->addElement('header', 'plagiarismdesc', get_string('pluginname', 'plagiarism_plagiarisma'));
         $ynoptions = array( 0 => get_string('no'), 1 => get_string('yes'));
-        $mform->addElement('checkbox', 'use_plagiarisma', get_string("useplagiarisma", "plagiarism_plagiarisma"));
+        $mform->addElement('checkbox', 'plagiarisma_use', get_string("useplagiarisma", "plagiarism_plagiarisma"));
 
-        if (isset($plagiarismvalues['use_plagiarisma'])) {
-            $mform->setDefault('use_plagiarisma', $plagiarismvalues['use_plagiarisma']);
-        } else if (isset($plagiarismsettings['plagiarisma_use_default'])) {
-            $mform->setDefault('use_plagiarisma', $plagiarismsettings['plagiarisma_use_default']);
+        if (isset($plagiarismvalues['plagiarisma_use'])) {
+            $mform->setDefault('plagiarisma_use', $plagiarismvalues['plagiarisma_use']);
         }
         $mform->addElement('checkbox', 'plagiarism_show_student_score',
                             get_string("studentscoreplagiarisma", "plagiarism_plagiarisma"));
         $mform->addHelpButton('plagiarism_show_student_score', 'studentscoreplagiarisma', 'plagiarism_plagiarisma');
-        $mform->disabledIf('plagiarism_show_student_score', 'use_plagiarisma');
+        $mform->disabledIf('plagiarism_show_student_score', 'plagiarisma_use');
 
         if (isset($plagiarismvalues['plagiarism_show_student_score'])) {
             $mform->setDefault('plagiarism_show_student_score', $plagiarismvalues['plagiarism_show_student_score']);
-        } else if (isset($plagiarismsettings['plagiarisma_student_score_default'])) {
-            $mform->setDefault('plagiarism_show_student_score', $plagiarismsettings['plagiarisma_student_score_default']);
         }
         $mform->addElement('checkbox', 'plagiarism_show_student_report',
                             get_string("studentreportplagiarisma", "plagiarism_plagiarisma"));
         $mform->addHelpButton('plagiarism_show_student_report', 'studentreportplagiarisma', 'plagiarism_plagiarisma');
-        $mform->disabledIf('plagiarism_show_student_report', 'use_plagiarisma');
+        $mform->disabledIf('plagiarism_show_student_report', 'plagiarisma_use');
 
         if (isset($plagiarismvalues['plagiarism_show_student_report'])) {
             $mform->setDefault('plagiarism_show_student_report', $plagiarismvalues['plagiarism_show_student_report']);
-        } else if (isset($plagiarismsettings['plagiarisma_student_report_default'])) {
-            $mform->setDefault('plagiarism_show_student_report', $plagiarismsettings['plagiarisma_student_report_default']);
         }
     }
     /**
@@ -409,7 +400,7 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
      * @return array
      */
     public function config_options() {
-        return array('use_plagiarisma', 'plagiarism_show_student_score', 'plagiarism_show_student_report');
+        return array('plagiarisma_use', 'plagiarism_show_student_score', 'plagiarism_show_student_report');
     }
     /**
      * hook to allow a disclosure to be printed notifying users what will happen with their submission
@@ -419,23 +410,24 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
     public function print_disclosure($cmid) {
         global $OUTPUT;
 
+        $plagiarismsettings = get_config('plagiarism_plagiarisma');
+        // Check Plagiarisma is enabled for this current module.
+        if (!isset($plagiarismsettings->plagiarisma_use) or !$plagiarismsettings->plagiarisma_use) {
+            return '';
+        }
+
         $plagiarismvalues = $DB->get_records_menu('plagiarism_plagiarisma_cfg',
                                                    array('cm' => $cmid), '', 'name,value');
 
-        if (empty($plagiarismvalues['use_plagiarisma'])) {
+        if (empty($plagiarismvalues['plagiarisma_use']) or $plagiarismvalues['plagiarisma_use'] == 0) {
             // Plugin is not in use for this cm.
             return '';
         }
 
-        $plagiarismsettings = $this->get_settings();
-        // Check Plagiarisma is enabled for this current module.
-        if ($plagiarismsettings['use_plagiarisma'] === false) {
-            return '';
-        }
         echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
         $formatoptions = new stdClass;
         $formatoptions->noclean = true;
-        echo format_text($plagiarismsettings['plagiarisma_student_disclosure'], FORMAT_MOODLE, $formatoptions);
+        echo format_text($plagiarismsettings->plagiarisma_student_disclosure, FORMAT_MOODLE, $formatoptions);
         echo $OUTPUT->box_end();
     }
     /**
@@ -452,7 +444,7 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
     public function cron() {
         global $CFG, $DB, $USER;
 
-        $plagiarismsettings = (array)get_config('plagiarism');
+        $plagiarismsettings = get_config('plagiarism_plagiarisma');
 
         // Submit queued files.
         $dbfiles = $DB->get_records('plagiarism_plagiarisma_files',
@@ -472,8 +464,8 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
                 try {
                     $customdata = unserialize($dbfile->data);
 
-                    if (empty($plagiarismsettings['plagiarisma_accountid']) or
-                        empty($plagiarismsettings['plagiarisma_secretkey'])) {
+                    if (empty($plagiarismsettings->plagiarisma_accountid) or
+                        empty($plagiarismsettings->plagiarisma_secretkey)) {
                         throw new Exception('Account Id or API Key not set!');
                     }
                     $plagiarisma = $customdata['plagiarisma'];
@@ -484,8 +476,8 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
                     }
                     $fields = array();
 
-                    $fields['consumer'] = $plagiarismsettings['plagiarisma_accountid'];
-                    $fields['consumerSecret'] = $plagiarismsettings['plagiarisma_secretkey'];
+                    $fields['consumer'] = $plagiarismsettings->plagiarisma_accountid;
+                    $fields['consumerSecret'] = $plagiarismsettings->plagiarisma_secretkey;
                     $fields['identifier'] = $dbfile->identifier;
                     // Create a tmp file to store data.
                     if (!check_dir_exists($customdata['dataroot'].'/plagiarism/', true, true)) {
@@ -569,8 +561,8 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
                 try {
                     $fields = array();
 
-                    $fields['consumer'] = $plagiarismsettings['plagiarisma_accountid'];
-                    $fields['consumerSecret'] = $plagiarismsettings['plagiarisma_secretkey'];
+                    $fields['consumer'] = $plagiarismsettings->plagiarisma_accountid;
+                    $fields['consumerSecret'] = $plagiarismsettings->plagiarisma_secretkey;
                     $fields['identifier'] = $dbfile->identifier;
                     $fields['tokenRequest'] = 'true';
 
