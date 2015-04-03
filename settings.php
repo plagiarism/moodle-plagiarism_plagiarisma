@@ -36,6 +36,8 @@ $context = context_system::instance();
 require_capability('moodle/site:config', $context, $USER->id, true, "nopermissions");
 require_once('plagiarism_form.php');
 $mform = new plagiarism_setup_form();
+$mform->set_data(get_config('plagiarism_plagiarisma'));
+
 $plagiarismplugin = new plagiarism_plugin_plagiarisma();
 
 if ($mform->is_cancelled()) {
@@ -52,31 +54,22 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
     if (!isset($data->plagiarisma_disable_dynamic_inline)) {
         $data->plagiarisma_disable_dynamic_inline = 0;
     }
-    if (!isset($data->plagiarisma_use_default)) {
-        $data->plagiarisma_use_default = 0;
-    }
-    if (!isset($data->plagiarisma_student_score_default)) {
-        $data->plagiarisma_student_score_default = 0;
-    }
-    if (!isset($data->plagiarisma_student_report_default)) {
-        $data->plagiarisma_student_report_default = 0;
-    }
     // Save each setting.
     foreach ($data as $field => $value) {
-        if (strpos($field, 'plagiarisma') === 0) {
-            set_config($field, $value, 'plagiarism');
+        if (strpos($field, 'plagiarisma') == 0) {
+            set_config($field, $value, 'plagiarism_plagiarisma');
         }
         if ($field == 'delall' && $value == true) {
             clean_data();
+            set_config($field, 0, 'plagiarism_plagiarisma');
         }
     }
     unset($_SESSION['plagiarisma_use']);
 
+    $mform->set_data(get_config('plagiarism_plagiarisma'));
+
     notify(get_string('savedconfigsuccess', 'plagiarism_plagiarisma'), 'notifysuccess');
 }
-
-$plagiarismsettings = (array)get_config('plagiarism');
-$mform->set_data($plagiarismsettings);
 
 echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
 $mform->display();
