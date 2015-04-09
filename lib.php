@@ -51,6 +51,7 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
      */
     public function get_settings() {
 
+        $globalsettings = get_config('plagiarism');
         $plagiarismsettings = get_config('plagiarism_plagiarisma');
         // Check if enabled.
         if (isset($plagiarismsettings->plagiarisma_use) and $plagiarismsettings->plagiarisma_use) {
@@ -63,21 +64,20 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
                 notify(get_string('key_notset', 'plagiarism_plagiarisma'), 'notifyproblem');
                 return false;
             }
-            if (isset($_SESSION['plagiarisma_use'])) {
+            if (isset($globalsettings->plagiarisma_use) and $globalsettings->plagiarisma_use) {
                 return $plagiarismsettings;
             }
             // Validate email, apikey and subscription.
             $status = $this->plagiarism_plagiarisma_authorize($plagiarismsettings->plagiarisma_accountid,
                                                               $plagiarismsettings->plagiarisma_secretkey);
-
             if (isset($status['error'])) {
                 // Validation failed.
                 notify($status['error'], 'notifyproblem');
-                unset($_SESSION['plagiarisma_use']);
+                set_config('plagiarisma_use', 0, 'plagiarism');
 
                 return false;
             } else {
-                $_SESSION['plagiarisma_use'] = true;
+                set_config('plagiarisma_use', 1, 'plagiarism');
 
                 return $plagiarismsettings;
             }
@@ -323,9 +323,9 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
     public function save_form_elements($data) {
         global $DB;
 
-        $plagiarismsettings = get_config('plagiarism_plagiarisma');
+        $globalsettings = get_config('plagiarism');
 
-        if ($plagiarismsettings->plagiarisma_use) {
+        if ($globalsettings->plagiarisma_use) {
             $plagiarismelements = $this->config_options();
             // First get existing values.
             $existingelements = $DB->get_records_menu('plagiarism_plagiarisma_cfg',
@@ -359,9 +359,9 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
         if ($modulename != 'mod_assign') {
             return '';
         }
-        $plagiarismsettings = get_config('plagiarism_plagiarisma');
+        $globalsettings = get_config('plagiarism');
         // Check Plagiarisma is enabled for this current module.
-        if (!isset($plagiarismsettings->plagiarisma_use) or !$plagiarismsettings->plagiarisma_use) {
+        if (!isset($globalsettings->plagiarisma_use) or !$globalsettings->plagiarisma_use) {
             return '';
         }
 
@@ -408,11 +408,11 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
      * @return string
      */
     public function print_disclosure($cmid) {
-        global $OUTPUT;
+        global $DB, $OUTPUT;
 
-        $plagiarismsettings = get_config('plagiarism_plagiarisma');
+        $globalsettings = get_config('plagiarism');
         // Check Plagiarisma is enabled for this current module.
-        if (!isset($plagiarismsettings->plagiarisma_use) or !$plagiarismsettings->plagiarisma_use) {
+        if (!isset($globalsettings->plagiarisma_use) or !$globalsettings->plagiarisma_use) {
             return '';
         }
 
@@ -424,11 +424,15 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
             return '';
         }
 
-        echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
+        $outputhtml = '';
+
+        $outputhtml .= $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
         $formatoptions = new stdClass;
         $formatoptions->noclean = true;
-        echo format_text($plagiarismsettings->plagiarisma_student_disclosure, FORMAT_MOODLE, $formatoptions);
-        echo $OUTPUT->box_end();
+        $outputhtml .= format_text($plagiarismsettings->plagiarisma_student_disclosure, FORMAT_MOODLE, $formatoptions);
+        $outputhtml .= $OUTPUT->box_end();
+
+        return $outputhtml;
     }
     /**
      * hook to allow status of submitted files to be updated - called on grading/report pages.
