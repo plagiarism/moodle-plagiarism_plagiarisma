@@ -64,11 +64,19 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
             set_config($field, 0, 'plagiarism_plagiarisma');
         }
     }
-    unset($_SESSION['plagiarisma_use']);
-
     $mform->set_data(get_config('plagiarism_plagiarisma'));
 
-    notify(get_string('savedconfigsuccess', 'plagiarism_plagiarisma'), 'notifysuccess');
+    // Invoke plagiarism_plagiarisma_authorize() to validate account.
+    $plagiarismsettings = $plagiarismplugin->get_settings();
+
+    if ($plagiarismsettings === false) {
+        set_config('plagiarisma_use', 0, 'plagiarism');
+        set_config('plagiarisma_use', 0, 'plagiarism_plagiarisma');
+    } else {
+        set_config('plagiarisma_use', 1, 'plagiarism');
+
+        notify(get_string('savedconfigsuccess', 'plagiarism_plagiarisma'), 'notifysuccess');
+    }
 }
 
 echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
