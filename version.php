@@ -26,10 +26,10 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2015032400;
+$plugin->version   = 2015093000;
 $plugin->requires = 2013051406;
 $plugin->cron      = 60; // 1 min.
 $plugin->component = 'plagiarism_plagiarisma';
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = "1.0";
+$plugin->release = "1.1";
 $plugin->dependencies = array('mod_assign' => ANY_VERSION);
