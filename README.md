@@ -26,4 +26,4 @@ INFO
 ====
 For more information see: http://plagiarisma.net/moodle.php
 
-Store your documents in the cloud for free: https://upload.cat
+Store your private documents in the cloud for free: https://upload.cat
