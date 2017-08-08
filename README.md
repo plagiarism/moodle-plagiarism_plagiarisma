@@ -25,4 +25,5 @@ Setting cron on Moodle is covered in Moodle doc: https://docs.moodle.org/28/en/C
 INFO
 ====
 For more information see: http://plagiarisma.net/moodle.php
- 
+
+Store your documents in the cloud for free: https://upload.cat
