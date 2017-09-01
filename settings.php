@@ -27,21 +27,21 @@ require_once(dirname(dirname(__FILE__)) . '/../config.php');
 require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->libdir.'/plagiarismlib.php');
 require_once($CFG->dirroot.'/plagiarism/plagiarisma/lib.php');
-require_once($CFG->dirroot.'/plagiarism/plagiarisma/plagiarism_form.php');
 
 require_login();
 admin_externalpage_setup('plagiarismplagiarisma');
 $context = context_system::instance();
-
 require_capability('moodle/site:config', $context, $USER->id, true, "nopermissions");
-require_once('plagiarism_form.php');
+
+require_once($CFG->dirroot.'/plagiarism/plagiarisma/plagiarism_form.php');
 $mform = new plagiarism_setup_form();
+
 $mform->set_data(get_config('plagiarism_plagiarisma'));
 
 $plagiarismplugin = new plagiarism_plugin_plagiarisma();
 
 if ($mform->is_cancelled()) {
-    redirect('');
+    redirect(new moodle_url('/'));
 }
 
 echo $OUTPUT->header();
@@ -75,7 +75,7 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
     } else {
         set_config('plagiarisma_use', 1, 'plagiarism');
 
-        notify(get_string('savedconfigsuccess', 'plagiarism_plagiarisma'), 'notifysuccess');
+        echo $OUTPUT->notification(get_string('savedconfigsuccess', 'plagiarism_plagiarisma'), 'notifysuccess');
     }
 }
 
@@ -88,10 +88,10 @@ echo $OUTPUT->footer();
  * clean tables
  */
 function clean_data() {
-    global $DB;
+    global $DB, $OUTPUT;
 
     $DB->delete_records("plagiarism_plagiarisma_files");
     $DB->delete_records("plagiarism_plagiarisma_id");
 
-    notify(get_string('tables_cleaned_up', 'plagiarism_plagiarisma'), 'notifysuccess');
+    echo $OUTPUT->notification(get_string('tables_cleaned_up', 'plagiarism_plagiarisma'), 'notifysuccess');
 }

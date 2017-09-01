@@ -21,15 +21,18 @@
  * @package    plagiarism_plagiarisma
  * @subpackage plagiarism
  * @copyright  2010 Dan Marsden http://danmarsden.com
- * @copyright  2015 Plagiarisma.Net http://plagiarisma.net
+ * @copyright  2015-2017 Plagiarisma.Net http://plagiarisma.net
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2015093000;
+if (!isset($plugin)) {
+    $plugin = new stdClass();
+}
+
+$plugin->version  = 2017080700;
 $plugin->requires = 2013051406;
-$plugin->cron      = 60; // 1 min.
+$plugin->cron     = 60;
 $plugin->component = 'plagiarism_plagiarisma';
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = "1.1";
-$plugin->dependencies = array('mod_assign' => ANY_VERSION);
+$plugin->release = "1.2";

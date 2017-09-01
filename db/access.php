@@ -21,7 +21,10 @@
  * @package    plagiarism_plagiarisma
  * @subpackage plagiarism
  * @copyright  2010 Dan Marsden http://danmarsden.com
- * @copyright  2015 Plagiarisma.Net http://plagiarisma.net
+ * @copyright  2015-2017 Plagiarisma.Net http://plagiarisma.net
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die();
+
 $capabilities = array();

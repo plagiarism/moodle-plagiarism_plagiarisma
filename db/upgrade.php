@@ -15,19 +15,26 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @global moodle_database $DB
+ *
+ * upgrade.php
+ *
+ * @since 2.0
+ * @package    plagiarism_plagiarisma
+ * @subpackage plagiarism
+ * @copyright  2015-2017 Plagiarisma.Net http://plagiarisma.net
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later 
+ */
+
+/**
+ * Nothing to update
+ *
  * @param int $oldversion
  * @return bool
  */
 function xmldb_plagiarism_plagiarisma_upgrade($oldversion) {
-    global $CFG, $DB;
-    $dbman = $DB->get_manager();
-
-    if($oldversion < 2015093000){
-	//Nothing to update
-	upgrade_plugin_savepoint(true, 2015093000, 'plagiarism', 'plagiarisma');
+    if ($oldversion < 2017080700) {
+        upgrade_plugin_savepoint(true, 2017080700, 'plagiarism', 'plagiarisma');
     }
 
     return true;
 }
-

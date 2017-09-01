@@ -21,7 +21,7 @@
  * @package    plagiarism_plagiarisma
  * @subpackage plagiarism
  * @copyright  2010 Dan Marsden http://danmarsden.com
- * @copyright  2015 Plagiarisma.Net http://plagiarisma.net
+ * @copyright  2015-2017 Plagiarisma.Net http://plagiarisma.net
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
@@ -50,6 +50,7 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
      * @return object
      */
     public function get_settings() {
+        global $OUTPUT;
 
         $globalsettings = get_config('plagiarism');
         $plagiarismsettings = get_config('plagiarism_plagiarisma');
@@ -57,11 +58,11 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
         if (isset($plagiarismsettings->plagiarisma_use) and $plagiarismsettings->plagiarisma_use) {
             // Now check to make sure required settings are set!
             if (empty($plagiarismsettings->plagiarisma_accountid)) {
-                notify(get_string('id_notset', 'plagiarism_plagiarisma'), 'notifyproblem');
+                echo $OUTPUT->notification(get_string('id_notset', 'plagiarism_plagiarisma'), 'notifyproblem');
                 return false;
             }
             if (empty($plagiarismsettings->plagiarisma_secretkey)) {
-                notify(get_string('key_notset', 'plagiarism_plagiarisma'), 'notifyproblem');
+                echo $OUTPUT->notification(get_string('key_notset', 'plagiarism_plagiarisma'), 'notifyproblem');
                 return false;
             }
             if (isset($globalsettings->plagiarisma_use) and $globalsettings->plagiarisma_use) {
@@ -72,7 +73,7 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
                                                               $plagiarismsettings->plagiarisma_secretkey);
             if (isset($status['error'])) {
                 // Validation failed.
-                notify($status['error'], 'notifyproblem');
+                echo $OUTPUT->notification($status['error'], 'notifyproblem');
                 set_config('plagiarisma_use', 0, 'plagiarism');
 
                 return false;
@@ -103,6 +104,7 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
         }
 
         $cm = get_coursemodule_from_id('', $linkarray["cmid"]);
+
         if ($cm->modname != 'assign') {
             return '';
         }
@@ -268,7 +270,7 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
             // Store for cron job to submit the file.
             $update = true;
             if (empty($mycontent)) {
-                $newelement = new object();
+                $newelement = new stdClass();
                 $update = false;
             } else {
                 $newelement = $mycontent;
@@ -332,7 +334,7 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
                                                        array('cm' => $data->coursemodule), '', 'name,id');
 
             foreach ($plagiarismelements as $element) {
-                $newelement = new object();
+                $newelement = new stdClass();
                 $newelement->cm = $data->coursemodule;
                 $newelement->name = $element;
                 $newelement->value = (isset($data->$element) ? $data->$element : 0);
@@ -443,6 +445,12 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
         // Called at top of submissions/grading pages - allows printing of admin style links or updating status.
     }
     /**
+     *  plagiarism_cron()
+     */
+    public function plagiarism_cron() {
+        return cron();
+    }
+    /**
      * called by admin/cron.php 
      */
     public function cron() {
@@ -516,7 +524,7 @@ class plagiarism_plugin_plagiarisma extends plagiarism_plugin {
                     $status = json_decode($c->post(constant('PLAGIARISM_PLAGIARISMA_URL'), $fields), true);
 
                     if (!empty($status) and isset($status['token'])) {
-                        $newelement = new object ();
+                        $newelement = new stdClass ();
                         $newelement->cm = $customdata['cmid'];
                         $newelement->userid = $USER->id;
                         $newelement->identifier = $dbfile->identifier;
