@@ -1,6 +1,6 @@
 PLAGIARISMA plugin for Moodle 2.5+
 
-PLAGIARISMA is a commercial product owned by Plagiarisma.Net - you must have a paid subscription to be able to use this plugin. The plugin works for the assignment module, with file submissions and online text. Supported file formats - PDF, DOC, DOCX, RTF, ODT, TXT, HTML.
+PLAGIARISMA is a commercial product owned by Plagiarisma Ltd - you must have a paid subscription to be able to use this plugin. The plugin works for the assignment module, with file submissions and online text. Supported file formats - PDF, DOC, DOCX, RTF, ODT, TXT, HTML.
 
 QUICK INSTALL
 =============
@@ -26,4 +26,4 @@ INFO
 ====
 For more information see: http://plagiarisma.net/moodle.php
 
-Store your private documents in the cloud for free: https://upload.cat
+Essay Writing Service in 3 Hours: https://plagiarisma.net/essay-writing-service.php
