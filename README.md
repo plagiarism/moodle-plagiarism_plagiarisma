@@ -24,6 +24,6 @@ Setting cron on Moodle is covered in Moodle doc: https://docs.moodle.org/28/en/C
 
 INFO
 ====
-For more information see: http://plagiarisma.net/moodle.php
+For more information see: https://plagiarisma.net
 
-Essay Writing Service in 3 Hours: https://plagiarisma.net/essay-writing-service.php
+Parseon — Local AI Document Analyst: https://parseon.app
